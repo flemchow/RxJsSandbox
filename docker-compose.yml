@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  reverse-proxy:
+    image: nginx:stable-alpine
+    volumes:
+      - ./config/nginx/:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      - requestsender
+      - requestreciever
+    networks:
+      web-services:
+        aliases:
+          - requestsender.${BACKEND_DOMAIN:-127-0-0-1.sslip.io}
+          - requestreciever.${BACKEND_DOMAIN:-127-0-0-1.sslip.io}
+
+  requestsender:
+    build: ./requestSender
+    networks:
+      - web-services
+
+  requestreciever:
+    build: ./requestReciever
+    depends_on:
+      - requestsender
+    networks:
+      - web-services
+
+networks:
+  web-services:
